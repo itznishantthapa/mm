@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "262247853161",
+    "project_id": "meatmart-nepal",
+    "storage_bucket": "meatmart-nepal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:262247853161:android:98a5ca97aead67c7fa06f8",
+        "android_client_info": {
+          "package_name": "com.company.meatmartnepal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "262247853161-bo45fvuc53h4mf81fjcd2825ak9rj65g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.company.meatmartnepal",
+            "certificate_hash": "f36eaca9321576d9a795f7b36fc2c8bb0fbef8c3"
+          }
+        },
+        {
+          "client_id": "262247853161-1uor0i4k8bqvcr9t96ui825229fa2lac.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgzIathUYgJHca0ytkzj4aupXPDtCnUfY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "262247853161-1uor0i4k8bqvcr9t96ui825229fa2lac.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
