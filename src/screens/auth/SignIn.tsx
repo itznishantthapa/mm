@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient"
 import { AntDesign } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { AppContext } from "../../../context/AppContext"
-
+import { GoogleSignin, statusCodes  } from "@react-native-google-signin/google-signin"
 
 
 const { width, height } = Dimensions.get("window")
@@ -16,8 +16,34 @@ const SignIn = ({ navigation }) => {
   const slideAnim = useRef(new Animated.Value(50)).current
   const [isLoginScreen, setIsLoginScreen] = useState(false)
 
+  useEffect(() => {
+    GoogleSignin.configure({
+      scopes: ['email'],
+      webClientId: '1076703935364-a86102jsfog4vqtpusfnep6r8qi3rfiu.apps.googleusercontent.com',
+    })
+  }, [])
 
+  const signIn = async()=>{
+    try {
+      await GoogleSignin.hasPlayServices()
+      const userInfo = await GoogleSignin.signIn()
+      console.log(userInfo)
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_REQUIRED) {
+        // Add scopes to request
+        await GoogleSignin.configure({
+          scopes: ['email'],
+          webClientId: '1076703935364-a86102jsfog4vqtpusfnep6r8qi3rfiu.apps.googleusercontent.com',
+        })
+      }else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        console.log("Play Services Not Available")
+      }else{
+        console.log(error)
+      }
+      
+    }
 
+  }
 
   useEffect(() => {
     Animated.parallel([
@@ -40,6 +66,7 @@ const SignIn = ({ navigation }) => {
 
   const handleGoogleSignIn = async () => {
     console.log("Google Sign In")
+    signIn();
   };
 
   const handleBackButton = () => {
