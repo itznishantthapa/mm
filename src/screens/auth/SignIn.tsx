@@ -1,10 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Dimensions, Keyboard, Image } from "react-native"
+import { useEffect, useRef, useState, useContext } from "react"
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Dimensions, Keyboard, Image, Alert } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { AntDesign } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { AppContext } from "../../../context/AppContext"
+
+
 
 const { width, height } = Dimensions.get("window")
 
@@ -12,6 +15,9 @@ const SignIn = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(50)).current
   const [isLoginScreen, setIsLoginScreen] = useState(false)
+
+
+
 
   useEffect(() => {
     Animated.parallel([
@@ -27,15 +33,15 @@ const SignIn = ({ navigation }) => {
         useNativeDriver: true,
         easing: Easing.out(Easing.exp),
       }),
-    ]).start()
-  }, [fadeAnim, slideAnim])
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
-  const handleGoogleSignIn = () => {
-    // Handle Google sign in logic
-    console.log("Google Sign In pressed")
-    navigation.navigate("LoginScreens")
-  }
-  
+
+
+  const handleGoogleSignIn = async () => {
+    console.log("Google Sign In")
+  };
+
   const handleBackButton = () => {
     Keyboard.dismiss();
     navigation.goBack();
@@ -48,8 +54,8 @@ const SignIn = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient colors={["#FFFFFF", "#F0F4F8"]} style={styles.container}>
-        <TouchableOpacity 
-          onPress={handleBackButton} 
+        <TouchableOpacity
+          onPress={handleBackButton}
           style={styles.backButton}
           activeOpacity={0.7}
         >
@@ -71,20 +77,20 @@ const SignIn = ({ navigation }) => {
         >
           <Text style={styles.heading}>MeatMart</Text>
           <Text style={styles.subtitle}>
-            {isLoginScreen 
+            {isLoginScreen
               ? "Welcome back! Just log in to get started."
               : "Let's get started! Create your account."}
           </Text>
-          
+
           {/* Google Sign In Button */}
-          <TouchableOpacity 
-            style={styles.googleButton} 
+          <TouchableOpacity
+            style={styles.googleButton}
             onPress={handleGoogleSignIn}
             activeOpacity={0.9}
           >
             <View style={styles.googleButtonContent}>
-              <Image 
-                source={require('../../../assets/images/googlelogo.png')} 
+              <Image
+                source={require('../../../assets/images/googlelogo.png')}
                 style={styles.googleIcon}
               />
               <Text style={styles.googleButtonText}>
@@ -92,14 +98,14 @@ const SignIn = ({ navigation }) => {
               </Text>
             </View>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.loginPrompt}
             onPress={toggleScreen}
             activeOpacity={0.7}
           >
             <Text style={styles.loginPromptText}>
-              {isLoginScreen 
+              {isLoginScreen
                 ? "Don't have an account? Register"
                 : "Already registered? Log in"}
             </Text>
@@ -117,11 +123,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backButton: {
-    position: 'absolute', 
-    top: 20, 
-    left: 20, 
+    position: 'absolute',
+    top: 20,
+    left: 20,
     zIndex: 999,
-    padding: 10, // Increase touch area
+    padding: 10,
   },
   content: {
     width: width * 0.9,
@@ -156,7 +162,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
-    // Fix for flickering on Android
     borderWidth: 1,
     borderColor: '#EEEEEE',
   },

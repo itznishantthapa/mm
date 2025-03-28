@@ -21,7 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import customMapStyle from '../../Data/mapStyle';
 import meatShops from '../../Data/shopData';
 import LottieView from 'lottie-react-native';
-import FirebaseTest from '../components/FirebaseTest';
+
 
 const { width, height } = Dimensions.get('window');
 // Category icons mapping
@@ -486,7 +486,7 @@ const Home = ({ navigation }) => {
             <View style={styles.welcomeContainer}>
               <Text style={styles.appTitle}>MeatMart</Text>
               <View style={styles.greetingContainer}>
-                <Text style={styles.greetingText}>{greeting}, {"Nishant"}</Text>
+                <Text style={styles.greetingText}>{greeting}, {"Nishant Thapa"}</Text>
                 <Animated.Text style={[styles.welcomeText, { opacity: textOpacity }]}>
                   {welcomeMessages[currentTextIndex]}
                 </Animated.Text>

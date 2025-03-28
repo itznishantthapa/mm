@@ -8,8 +8,6 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import ProfileScreen from "./src/screens/Profile/ProfileScreen";
-// Import Firebase configuration
-import firebaseApp from "./src/firebaseConfig";
 import SignIn from "./src/screens/auth/SignIn";
 
 SplashScreen.preventAutoHideAsync();

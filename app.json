@@ -1,37 +1,15 @@
 {
   "expo": {
-    "name": "MeatMart",
-    "slug": "MeatMart",
+    "name": "meatmart",
+    "slug": "meatmart",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.company.meatmartnepal"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-font",
-      "@react-native-firebase/app"
+    "sdkVersion": "51.0.0",
+    "platforms": [
+      "ios",
+      "android"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "810f89e0-3036-424c-9f45-4e1f5c5f1bff"
-      }
+    "android": {
+      "package": "com.itznishantthapaof2002.meatmart"
     }
   }
 }
