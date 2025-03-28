@@ -7,11 +7,13 @@ import { AntDesign } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { AppContext } from "../../../context/AppContext"
 import { GoogleSignin, statusCodes  } from "@react-native-google-signin/google-signin"
+import { registerUserWithFirebase } from "../../../apis/auth/RegisterUser"
 
 
 const { width, height } = Dimensions.get("window")
 
 const SignIn = ({ navigation }) => {
+  const { setUser } = useContext(AppContext)
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(50)).current
   const [isLoginScreen, setIsLoginScreen] = useState(false)
@@ -28,6 +30,9 @@ const SignIn = ({ navigation }) => {
       await GoogleSignin.hasPlayServices()
       const userInfo = await GoogleSignin.signIn()
       console.log(userInfo)
+      registerUserWithFirebase(userInfo)
+      setUser(userInfo)
+      navigation.navigate('DrawerNavigator')
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_REQUIRED) {
         // Add scopes to request

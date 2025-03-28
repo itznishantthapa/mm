@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback ,useContext} from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import customMapStyle from '../../Data/mapStyle';
 import meatShops from '../../Data/shopData';
 import LottieView from 'lottie-react-native';
+import { AppContext } from '../../context/AppContext';
+import { auth } from '../../firebaseConfig';
 
 
 const { width, height } = Dimensions.get('window');
@@ -35,6 +37,7 @@ const categoryIcons = {
 };
 
 const Home = ({ navigation }) => {
+  const { user,isDarkMode } = useContext(AppContext)
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [region, setRegion] = useState({
@@ -280,7 +283,7 @@ const Home = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fafafa" />
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={isDarkMode ? "#121212" : "#fafafa"} />
 
       {/* Map View */}
       <MapView
@@ -341,14 +344,20 @@ const Home = ({ navigation }) => {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity 
-          style={styles.menuButton}
-          onPress={()=>navigation.openDrawer()}
+          style={[styles.menuButton, {backgroundColor: isDarkMode ? '#212121' : '#fafafa'}]}
+          onPress={() => {
+            if (navigation.openDrawer) {
+              navigation.openDrawer();
+            } else {
+              console.log('Drawer navigation not available');
+            }
+          }}
         >
-          <MaterialIcons name="menu" size={24} color="#212121" />
+          <MaterialIcons name="menu" size={24} color={isDarkMode ? '#fafafa' : '#212121'} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.notificationButton}>
-          <Ionicons name="notifications" size={24} color="#212121" />
+        <TouchableOpacity style={[styles.notificationButton, {backgroundColor: isDarkMode ? '#212121' : '#fafafa'}]} onPress={()=>{console.log(auth.currentUser)}}>
+          <Ionicons name="notifications" size={24} color={isDarkMode ? '#fafafa' : '#212121'} />
         </TouchableOpacity>
       </View>
 
@@ -376,7 +385,7 @@ const Home = ({ navigation }) => {
         ]}
       >
         <LinearGradient
-          colors={['#FFFFFF', '#FAFAFA']}
+          colors={isDarkMode ? ['#121212', '#121212'] : ['#FFFFFF', '#FAFAFA']}
           style={styles.bottomSheetContent}
         >
           {/* Location Display at Top Right */}
@@ -486,8 +495,8 @@ const Home = ({ navigation }) => {
             <View style={styles.welcomeContainer}>
               <Text style={styles.appTitle}>MeatMart</Text>
               <View style={styles.greetingContainer}>
-                <Text style={styles.greetingText}>{greeting}, {"Nishant Thapa"}</Text>
-                <Animated.Text style={[styles.welcomeText, { opacity: textOpacity }]}>
+               {user && <Text style={[styles.greetingText,{color:isDarkMode ? '#B0BEC5' : '#212121'}]}>{greeting}, {user.data.user.givenName}</Text>}
+                <Animated.Text style={[styles.welcomeText, { opacity: textOpacity,color:isDarkMode ? '#FFFFFF' : '#757575' }]}>
                   {welcomeMessages[currentTextIndex]}
                 </Animated.Text>
               </View>
@@ -520,14 +529,14 @@ const Home = ({ navigation }) => {
 
 
             {/* favourite button */}
-              <TouchableOpacity style={styles.favouriteButton}>
+              <TouchableOpacity style={[styles.favouriteButton,{backgroundColor:isDarkMode ? '#333333' : '#ffffff', borderColor: isDarkMode ? '#FFFFFF' : '#333333' }]}>
                 <Fontisto name="favorite" size={24} color="#4CAF50" />
               </TouchableOpacity>
               </View>
 
 
               <View style={styles.categoriesScrollContainer}>
-                <Text style={styles.categoriesTitle}>Select categories</Text>
+                <Text style={[styles.categoriesTitle,{color:isDarkMode ? '#FFFFFF' : '#757575' }]}>Select categories</Text>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -539,7 +548,8 @@ const Home = ({ navigation }) => {
                       style={styles.categoryCard}
                       onPress={() => handleCategoryPress(category)}
                     >
-                      <Text style={styles.categoryCardText}>{category}</Text>
+                      
+                      <Text style={[styles.categoryCardText,{color:isDarkMode ? '#FFFFFF' : '#757575', borderColor:isDarkMode ? '#FFFFFF' : '#333333' }]}>{category}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -578,7 +588,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: '#fafafa',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -597,7 +607,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: '#fafafa',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
