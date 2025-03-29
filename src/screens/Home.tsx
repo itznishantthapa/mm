@@ -69,6 +69,29 @@ const Home = ({ navigation }) => {
   ];
   const textOpacity = useRef(new Animated.Value(1)).current;
 
+  // Add a new state for sign-in prompt animation
+  const signInPromptOpacity = useRef(new Animated.Value(0)).current;
+  const signInPromptTranslate = useRef(new Animated.Value(20)).current;
+  
+  // Show sign-in prompt with animation if user is not signed in
+  useEffect(() => {
+    if (!user) {
+      // Animate the sign-in prompt to appear
+      Animated.parallel([
+        Animated.timing(signInPromptOpacity, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(signInPromptTranslate, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [user]);
+
   // Set greeting based on time of day
   useEffect(() => {
     const hours = new Date().getHours();
@@ -197,6 +220,22 @@ const Home = ({ navigation }) => {
       duration: 300,
       useNativeDriver: false,
     }).start();
+    
+    // Show sign-in prompt when bottom sheet expands (if user is not signed in)
+    if (!user) {
+      Animated.parallel([
+        Animated.timing(signInPromptOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(signInPromptTranslate, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
   };
 
   const expandFullBottomSheet = () => {
@@ -213,11 +252,28 @@ const Home = ({ navigation }) => {
       duration: 200,
       useNativeDriver: false,
     }).start();
+    
+    // Also hide sign-in prompt when bottom sheet collapses
+    if (!user) {
+      Animated.parallel([
+        Animated.timing(signInPromptOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(signInPromptTranslate, {
+          toValue: 20,
+          duration: 200,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
   };
 
   const navigateToShopDetails = (shop) => {
     // Navigate to shop details screen
     console.log('Navigate to shop details:', shop.name);
+    navigation.navigate('ShopProfile', { shop })
   };
 
   const centerOnUserLocation = () => {
@@ -283,7 +339,7 @@ const Home = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={isDarkMode ? "#121212" : "#fafafa"} />
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={isDarkMode ? "#121212" : "#E8F5E9"} />
 
       {/* Map View */}
       <MapView
@@ -326,15 +382,30 @@ const Home = ({ navigation }) => {
                 { transform: [{ scale: markerScale }] }
               ]}
             >
-              <LinearGradient
-                colors={['#FF9800', '#FF6D00']}
-                style={styles.marker}
-              >
-                <MCIcons name="food-steak" size={30} color="#fff" />
-              </LinearGradient>
+              <View style={styles.markerBadge}>
+                <Text style={styles.markerRating}>{shop.rating}</Text>
+                <Ionicons name="star" size={10} color="#FFF" />
+              </View>
+              <View style={styles.markerImageContainer}>
+                {/* Replace with actual shop profile image */}
+                <Image 
+                  source={
+                    shop.imageUrl 
+                      ? { uri: shop.imageUrl } 
+                      : require('../../assets/images/googlelogo.png')
+                  } 
+                  style={styles.markerImage}
+                  resizeMode="cover"
+                />
+              </View>
               <View style={styles.markerPointer} />
-              <View >
+              <View style={styles.markerLabelContainer}>
                 <Text style={styles.markerText}>{shop.name}</Text>
+                <View style={styles.markerInfoRow}>
+                  <Text style={styles.markerDistance}>{shop.distance}</Text>
+                  <View style={styles.markerDot} />
+                  <Text style={styles.markerTime}>{shop.time}</Text>
+                </View>
               </View>
             </Animated.View>
           </Marker>
@@ -356,7 +427,7 @@ const Home = ({ navigation }) => {
           <MaterialIcons name="menu" size={24} color={isDarkMode ? '#fafafa' : '#212121'} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.notificationButton, {backgroundColor: isDarkMode ? '#212121' : '#fafafa'}]} onPress={()=>{console.log(auth.currentUser)}}>
+        <TouchableOpacity style={[styles.notificationButton, {backgroundColor: isDarkMode ? '#212121' : '#fafafa'}]} onPress={()=>{ navigation.navigate("SplashingScreen")}}>
           <Ionicons name="notifications" size={24} color={isDarkMode ? '#fafafa' : '#212121'} />
         </TouchableOpacity>
       </View>
@@ -374,6 +445,43 @@ const Home = ({ navigation }) => {
         </LinearGradient>
       </TouchableOpacity>
 
+      {/* Sign-in Prompt - only show if user is not signed in */}
+      {!user && (
+        <Animated.View
+          style={[
+            styles.signInPromptContainer,
+            {
+              opacity: signInPromptOpacity,
+              transform: [{ translateY: signInPromptTranslate }]
+            }
+          ]}
+        >
+          <LinearGradient
+            colors={isDarkMode ? ['#1E3A28', '#224D34'] : ['#E8F5E9', '#C8E6C9']}
+            style={styles.signInPromptGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <View style={styles.signInPromptContent}>
+              <View style={styles.signInPromptTextContainer}>
+                <Text style={[styles.signInPromptTitle, {color: isDarkMode ? '#FFFFFF' : '#2E7D32'}]}>
+                  Sign in to MeatMart
+                </Text>
+                <Text style={[styles.signInPromptDescription, {color: isDarkMode ? '#B0BEC5' : '#424242'}]}>
+                  Get exclusive discounts and track your orders
+                </Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.signInButton}
+                onPress={() => navigation.navigate("SignIn")}
+              >
+                <Text style={styles.signInButtonText}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      )}
+
       {/* Redesigned Bottom Sheet */}
       <Animated.View
         style={[
@@ -385,7 +493,7 @@ const Home = ({ navigation }) => {
         ]}
       >
         <LinearGradient
-          colors={isDarkMode ? ['#121212', '#121212'] : ['#FFFFFF', '#FAFAFA']}
+          colors={isDarkMode ? ['#121212', '#121212'] :  ['#E8F5E9', '#C8E6C9']}
           style={styles.bottomSheetContent}
         >
           {/* Location Display at Top Right */}
@@ -468,25 +576,35 @@ const Home = ({ navigation }) => {
                 </View>
               </View>
 
+              {/* Shop description section - more compact */}
+              <View style={styles.shopDescriptionContainer}>
+                <MCIcons name="text-box-outline" size={16} color={isDarkMode ? '#B0BEC5' : '#4CAF50'} />
+                <Text style={[styles.shopDescription, {color: isDarkMode ? '#FFFFFF' : '#424242'}]}>
+                  यहाँ सुँगुर तथा ब्रोइलरको मासु पनि उपलब्ध छ।
+                </Text>
+              </View>
+
+              {/* Category chips - more compact */}
               <View style={styles.categoryContainer}>
                 {selectedShop.category.map((cat, index) => (
-                  <View key={index} style={styles.categoryCard}>
-                    <Text style={styles.categoryCardText}>{cat}</Text>
+                  <View key={index} style={styles.categoryChip}>
+                    <Text style={styles.categoryChipText}>{cat}</Text>
                   </View>
                 ))}
               </View>
 
+              {/* Combined action buttons */}
               <View style={styles.actionButtonsContainer}>
                 <TouchableOpacity
                   style={styles.viewShopButton}
                   onPress={() => navigateToShopDetails(selectedShop)}
                 >
                   <Text style={styles.viewShopText}>Visit Shop</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                  <Ionicons name="arrow-forward" size={14} color="#FFFFFF" />
                 </TouchableOpacity>
             
                 <TouchableOpacity style={styles.navigateButton}>
-                  <Ionicons name="navigate" size={20} color="#FFFFFF" />
+                  <Ionicons name="navigate" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -495,7 +613,7 @@ const Home = ({ navigation }) => {
             <View style={styles.welcomeContainer}>
               <Text style={styles.appTitle}>MeatMart</Text>
               <View style={styles.greetingContainer}>
-               {user && <Text style={[styles.greetingText,{color:isDarkMode ? '#B0BEC5' : '#212121'}]}>{greeting}, {user.data.user.givenName}</Text>}
+               {user && <Text style={[styles.greetingText,{color:isDarkMode ? '#B0BEC5' : '#212121'}]}>{greeting}, {user.displayName}</Text>}
                 <Animated.Text style={[styles.welcomeText, { opacity: textOpacity,color:isDarkMode ? '#FFFFFF' : '#757575' }]}>
                   {welcomeMessages[currentTextIndex]}
                 </Animated.Text>
@@ -507,7 +625,7 @@ const Home = ({ navigation }) => {
 
               <TouchableOpacity
                 style={styles.couponButton}
-                onPress={()=>navigation.navigate("SignIn")}
+                onPress={()=>navigation.navigate("GetPremium")}
                 activeOpacity={0.8}
               >
                 <LinearGradient
@@ -596,10 +714,10 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   appTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: 'montserrat_bold',
     color: '#4CAF50',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   notificationButton: {
     width: 40,
@@ -633,11 +751,46 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
   },
   markerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.35,
+    shadowRadius: 5,
+  },
+  markerBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#4CAF50',
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 10,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  markerRating: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginRight: 2,
+  },
+  markerImageContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 2.5,
+    borderColor: '#fff',
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -646,18 +799,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
-  marker: {
-    width: 50,
-    height: 50,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
-    elevation: 8,
+  markerImage: {
+    width: '100%',
+    height: '100%',
   },
   markerPointer: {
     width: 14,
@@ -669,14 +813,44 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderColor: '#fff',
   },
+  markerLabelContainer: {
+    backgroundColor: 'red',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 5,
+    // maxWidth: 150,
+  },
   markerText: {
-    paddingHorizontal: 10,
-    paddingBottom: 4,
     color: '#212121',
     fontWeight: 'bold',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 5,
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  markerInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 4,
+  },
+  markerDistance: {
+    fontSize: 10,
+    color: '#757575',
+  },
+  markerTime: {
+    fontSize: 10,
+    color: '#757575',
+  },
+  markerDot: {
+    width: 3,
+    height: 3,
+    backgroundColor: '#757575',
+    borderRadius: 1.5,
+    marginHorizontal: 5,
   },
   persistentBottomSheet: {
     position: 'absolute',
@@ -714,6 +888,7 @@ const styles = StyleSheet.create({
   },
   bottomSheetBody: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   shopInfoContainer: {
     flexDirection: 'row',
@@ -725,10 +900,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   shopName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#212121',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   shopInfoRow: {
     flexDirection: 'row',
@@ -765,39 +940,38 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginVertical: 16,
-    gap: 10,
+    marginVertical: 8,
+    gap: 8,
   },
-  categoryTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#C8E6C9',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
+  categoryChip: {
+    backgroundColor: 'rgba(200, 230, 201, 0.5)',
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginRight: 6,
+    marginBottom: 6,
   },
-  categoryText: {
+  categoryChipText: {
+    fontSize: 12,
     color: '#4CAF50',
-    //  -------------------------------------------------------------------------------------------
-    fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'poppins_regular',
   },
   actionButtonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
+    marginTop: 8,
   },
   viewShopButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#4CAF50',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
     flex: 1,
-    marginRight: 12,
+    marginRight: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -805,15 +979,15 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   viewShopText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'poppins_semibold',
     color: '#FFFFFF',
-    marginRight: 8,
+    marginRight: 6,
   },
   navigateButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     backgroundColor: '#FF6D00',
     alignItems: 'center',
     justifyContent: 'center',
@@ -869,7 +1043,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    // backgroundColor: '#C8E6C9',
   },
 
   // Category results styles
@@ -996,6 +1169,83 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 4,
     borderWidth: 1,
+  },
+
+  // Sign in prompt styles
+  signInPromptContainer: {
+    position: 'absolute',
+    bottom: Dimensions.get('window').height * 0.32 + 16, // Position above the bottom sheet
+    left: 16,
+    right: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 5,
+  },
+  signInPromptGradient: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  signInPromptContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  signInPromptTextContainer: {
+    flex: 1,
+    marginRight: 16,
+  },
+  signInPromptTitle: {
+    fontSize: 16,
+    fontFamily: 'poppins_semibold',
+    marginBottom: 4,
+  },
+  signInPromptDescription: {
+    fontSize: 14,
+    fontFamily: 'poppins_regular',
+    opacity: 0.8,
+  },
+  signInButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  signInButtonText: {
+    fontSize: 14,
+    fontFamily: 'poppins_semibold',
+    color: '#FFFFFF',
+  },
+
+  // Shop description styles
+  shopDescriptionContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(200, 230, 201, 0.3)',
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 8,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#4CAF50',
+  },
+  shopDescription: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: 'poppins_regular',
+    lineHeight: 18,
+    marginLeft: 8,
+  },
+  descriptionIconContainer: {
+    marginRight: 8,
   },
 });
 

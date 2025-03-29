@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useContext } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Dimensions, Keyboard, Image, Alert } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Dimensions, Keyboard, Image, Alert, StatusBar, ActivityIndicator } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { AntDesign } from "@expo/vector-icons"
 import { SafeAreaView } from "react-native-safe-area-context"
@@ -13,10 +13,11 @@ import { registerUserWithFirebase } from "../../../apis/auth/RegisterUser"
 const { width, height } = Dimensions.get("window")
 
 const SignIn = ({ navigation }) => {
-  const { setUser } = useContext(AppContext)
+  const { setUser, isDarkMode } = useContext(AppContext)
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(50)).current
   const [isLoginScreen, setIsLoginScreen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -27,25 +28,36 @@ const SignIn = ({ navigation }) => {
 
   const signIn = async()=>{
     try {
+      setIsLoading(true)
       await GoogleSignin.hasPlayServices()
+      // Sign out first to clear any existing sessions
+      await GoogleSignin.signOut()
       const userInfo = await GoogleSignin.signIn()
-      console.log(userInfo)
-      registerUserWithFirebase(userInfo)
-      setUser(userInfo)
-      navigation.navigate('DrawerNavigator')
+      if (!userInfo || !userInfo.data || !userInfo.data.scopes) {
+        setIsLoading(false)
+        return
+      }
+
+      const response = await registerUserWithFirebase(userInfo)
+      console.log(response,'given by the registerUserWithFirebase----------------------------------------------')
+      response && setUser(response.user)
+      // navigation.navigate('DrawerNavigator', { screen: 'Home' })
+      navigation.goBack()
     } catch (error) {
+      setIsLoading(false)
       if (error.code === statusCodes.SIGN_IN_REQUIRED) {
         // Add scopes to request
         await GoogleSignin.configure({
           scopes: ['email'],
           webClientId: '1076703935364-a86102jsfog4vqtpusfnep6r8qi3rfiu.apps.googleusercontent.com',
         })
-      }else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         console.log("Play Services Not Available")
-      }else{
+        Alert.alert("Error", "Google Play Services are not available on this device")
+      } else {
         console.log(error)
+        Alert.alert("Sign In Failed", "An error occurred during sign in. Please try again.")
       }
-      
     }
 
   }
@@ -85,11 +97,13 @@ const SignIn = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor="#ffffff" />
       <LinearGradient colors={["#FFFFFF", "#F0F4F8"]} style={styles.container}>
         <TouchableOpacity
           onPress={handleBackButton}
           style={styles.backButton}
           activeOpacity={0.7}
+          disabled={isLoading}
         >
           <AntDesign
             name='arrowleft'
@@ -116,25 +130,37 @@ const SignIn = ({ navigation }) => {
 
           {/* Google Sign In Button */}
           <TouchableOpacity
-            style={styles.googleButton}
+            style={[styles.googleButton, isLoading && styles.disabledButton]}
             onPress={handleGoogleSignIn}
             activeOpacity={0.9}
+            disabled={isLoading}
           >
             <View style={styles.googleButtonContent}>
-              <Image
-                source={require('../../../assets/images/googlelogo.png')}
-                style={styles.googleIcon}
-              />
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#4CAF50" style={styles.loadingIndicator} />
+              ) : (
+                <Image
+                  source={require('../../../assets/images/googlelogo.png')}
+                  style={styles.googleIcon}
+                />
+              )}
               <Text style={styles.googleButtonText}>
-                {isLoginScreen ? "Continue with Google" : "Sign up with Google"}
+                {isLoading 
+                  ? "Signing in..." 
+                  : isLoginScreen ? "Continue with Google" : "Sign up with Google"}
               </Text>
             </View>
           </TouchableOpacity>
+
+          {isLoading && (
+            <Text style={styles.loadingText}>Please wait while we sign you in...</Text>
+          )}
 
           <TouchableOpacity
             style={styles.loginPrompt}
             onPress={toggleScreen}
             activeOpacity={0.7}
+            disabled={isLoading}
           >
             <Text style={styles.loginPromptText}>
               {isLoginScreen
@@ -220,6 +246,19 @@ const styles = StyleSheet.create({
     fontFamily: "poppins_regular",
     fontSize: 14,
     color: "#888888",
+    textAlign: "center",
+  },
+  disabledButton: {
+    opacity: 0.8,
+  },
+  loadingIndicator: {
+    marginRight: 12,
+  },
+  loadingText: {
+    fontFamily: "poppins_regular",
+    fontSize: 14,
+    color: "#666666",
+    marginTop: 15,
     textAlign: "center",
   },
 })

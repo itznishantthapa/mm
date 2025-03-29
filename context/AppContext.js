@@ -1,10 +1,30 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
+import { auth, onAuthStateChanged } from '../firebaseConfig';
+
 
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+ 
   const [user, setUser] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState( false);
+
+
+
+
+  console.log(isDarkMode)
+
+  function clearCurrentData(){
+    setUser(null);
+    setIsDarkMode(false);
+  }
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+  }, []);
+  
   return (
     <AppContext.Provider
      value={{ 
@@ -12,6 +32,7 @@ export const AppProvider = ({ children }) => {
         setUser,
         isDarkMode,
         setIsDarkMode,
+        clearCurrentData,
      }}
      >
       {children}
